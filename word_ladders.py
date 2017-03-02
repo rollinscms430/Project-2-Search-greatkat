@@ -1,61 +1,87 @@
-#Word Ladders
+#Word Ladder
 #Katie Shiver
+#Worked with DC
+
+
+from copy import deepcopy
+
+queue = []
+d = {}
+visited = {}
+
+start = 'snakes'
+goal = 'brains'
+
 
 class State(object):
+
+    """Represents the state of the ladder
+       Attributes:  
+        ladder:  represents the current list of moves
+    """
     
-    """Represents a state in the solution
-    
-    Attributes:
-        path: the sequence of words to get from starting word to final word"""
+    def __init__(self, ladder):
+        self.ladder = ladder
         
-    def __init__(self, path):
-        self.path = path
+    #Adds word to the ladder
+    def add_word(self, word):
+        new_ladder = deepcopy(self.ladder)
+        new_ladder.append(word)
         
-def finished(path, end_word):
-    if path[len(path)-1] == end_word:
+        return State(new_ladder)
+        
+#*******************************    
+
+#Build dictionaru
+def init_dict(file):
+    f = open(file)
+    for word in f:
+        word = word.strip()
+        if len(word) == len(start):
+            d.setdefault(word, [])
+
+#Check if goal state found
+def finished(state):   
+    if state.ladder[len(state.ladder) - 1 ] == goal:
         return True
-    else:
-        return False
     
-def solve (start_word, end_word):
-    #Open the file
-    print "start"
-    f = open('words.txt')
-        
-    dictionary = {}
-        
-    for line in f:
-        line = line.strip() #Removes whitespace
-        if len(line) == len(start_word):
-            for i in range(len(line)):
-                word = '{}_{}'.format(line[:i], line[i + 1:])
-                if word not in dictionary:
-                    dictionary[word] = [line]
-                else:    
-                    dictionary[word].append(line) 
-                 
-    for word in dictionary:
-        print word, dictionary[word]
+    return False
+
+#Expand the children nodes
+def expand_node(state):
+    start = state.ladder[len(state.ladder) - 1]
+    
+    for word in d:
+        if word != start:
+            if len(word) == len(start):
+                for i in range(len(start)):
+                    slice_word = start[:i] + start[i+1:]
+                    slice_cn = word[:i] + word[i+1:] 
+                    
+                    if slice_word == slice_cn:
+                        if word not in visited:
+                            visited[word] = 1
+                            new_state = state.add_word(word)
+                            queue.append(new_state)
             
-    path = ['snakes', 'brains']
+#Main solve            
+def solve(word):
     
-    if path[0] == 'snakes':
-        print 'YES'
+    ladder = [word]
+    init_state = State(ladder)
+    queue.append(init_state)
     
-    print finished(path, end_word)
+    while len(queue) > 0:
+        
+        current_state = queue.pop(0)
+        
+        if finished(current_state):
+            print current_state.ladder
+        
+        expand_node(current_state)
         
         
-    
-                        #letters = list(start_word)
-                        #print letters[1]
-                        
-                        #way to increment through alphabet
-                        #letter = 'a'
-                        #for x in range(0,26):
-                        #    print chr(ord(letter) + x)
-    
-
-
-
+        
 if __name__ == '__main__':
-        solve('snakes', 'brains')
+    init_dict('words.txt')
+    solve(start)
